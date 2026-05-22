@@ -1,0 +1,30 @@
+{
+  "name": "hackertrip",
+  "version": "1.0.0",
+  "description": "Scan your project and find matching hackathons — powered by HackerTrip",
+  "type": "module",
+  "bin": {
+    "hackertrip": "./bin/hackertrip.mjs"
+  },
+  "files": [
+    "bin/",
+    "lib/"
+  ],
+  "keywords": [
+    "hackathon",
+    "match",
+    "developer",
+    "cli",
+    "ai",
+    "hackertrip"
+  ],
+  "author": "HackerTrip <hello@hackertrip.space>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jayden72Huang/hackertrip-cli"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
