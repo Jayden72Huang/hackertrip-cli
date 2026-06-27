@@ -1,7 +1,7 @@
 {
   "name": "hackertrip",
-  "version": "1.0.0",
-  "description": "Scan your project and find matching hackathons — powered by HackerTrip",
+  "version": "1.2.0",
+  "description": "HackerTrip CLI — scan your project to match hackathons (match), publish your work to your profile (publish-work), and submit events to the review drafts (submit-event)",
   "type": "module",
   "bin": {
     "hackertrip": "bin/hackertrip.mjs"
