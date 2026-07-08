@@ -50,11 +50,13 @@ hackertrip submit-event \
 
 ## 用 AI 帮你跑（推荐）
 
-把 `skills/HackerTrip-submit-event/` 拷到你的 Claude Code skills 目录：
+一条命令把主办方 skill 装进 Claude Code：
 
 ```bash
-cp -r skills/HackerTrip-submit-event ~/.claude/skills/
+npx hackertrip install-skills --organizer
 ```
+
+（或手动 `cp -r skills/HackerTrip-submit-event ~/.claude/skills/`）
 
 然后在 Claude Code 里直接说：
 

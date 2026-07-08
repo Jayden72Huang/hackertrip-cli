@@ -59,11 +59,13 @@ hackertrip publish-work \
 
 ## 用 AI 帮你跑（推荐）
 
-把 `skills/HackerTrip-publish-work/` 拷到你的 Claude Code skills 目录：
+一条命令把选手 skill 装进 Claude Code：
 
 ```bash
-cp -r skills/HackerTrip-publish-work ~/.claude/skills/
+npx hackertrip install-skills --player
 ```
+
+（或手动 `cp -r skills/HackerTrip-publish-work ~/.claude/skills/`）
 
 然后在 Claude Code 里直接说：
 

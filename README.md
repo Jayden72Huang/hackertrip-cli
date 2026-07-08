@@ -152,9 +152,15 @@ export HACKERTRIP_EVENT_URL="<活动提交接口地址>"
 **怎么用**：把对应包 `skills/` 下的 skill 目录拷到你的 Claude Code skills 目录（如 `~/.claude/skills/`），对话里直接说目标（如"我想把作品发布到 HackerTrip"），Claude 会自动加载对应 skill 并引导你走完每一步。
 
 ```bash
-# 选手
+npx hackertrip install-skills              # 两个 skill 全装
+npx hackertrip install-skills --player     # 只装选手 skill
+npx hackertrip install-skills --organizer  # 只装主办方 skill
+```
+
+已存在的 skill 默认跳过，`--force` 覆盖更新，`--dest <dir>` 自定义目录。也可以手动拷贝：
+
+```bash
 cp -r packages/player/skills/HackerTrip-publish-work ~/.claude/skills/
-# 主办方
 cp -r packages/organizer/skills/HackerTrip-submit-event ~/.claude/skills/
 ```
 

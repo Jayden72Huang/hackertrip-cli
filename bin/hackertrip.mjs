@@ -6,6 +6,7 @@ import { matchHackathons } from '../lib/match.mjs';
 import { display, displayProjectInfo } from '../lib/display.mjs';
 import { publishWork } from '../lib/publish-work.mjs';
 import { submitEvent } from '../lib/submit-event.mjs';
+import { installSkills } from '../lib/install-skills.mjs';
 import { randomInt } from 'node:crypto';
 
 const API_URL = process.env.HACKERTRIP_API || 'https://hackertrip.space/api/match';
@@ -13,7 +14,7 @@ const SYNC_URL = process.env.HACKERTRIP_SYNC_URL || '';
 const SYNC_TOKEN = process.env.HACKERTRIP_SYNC_TOKEN || '';
 const SYNC_CODE = process.env.HACKERTRIP_SYNC_CODE || '';
 
-const KNOWN_COMMANDS = ['match', 'publish-work', 'submit-event', 'help'];
+const KNOWN_COMMANDS = ['match', 'publish-work', 'submit-event', 'install-skills', 'help'];
 
 function parseMatchArgs(args) {
   let projectPath = process.cwd();
@@ -173,6 +174,7 @@ ${B}COMMANDS${R}
                  ${D}Run with no command, or "hackertrip ." , to use this.${R}
   ${C}publish-work${R}   Upload your project as a work to your HackerTrip profile.
   ${C}submit-event${R}   Submit a hackathon/event to the HackerTrip review drafts.
+  ${C}install-skills${R} Install the Claude Code skills into ~/.claude/skills.
   ${C}help${R}           Show this help.
 
 ${B}match options${R}
@@ -212,6 +214,12 @@ ${B}submit-event options${R}
   --organizer <text>    Organizer name.
   --contact <text>      Contact info.
 
+${B}install-skills options${R}
+  --player              Only install the player kit skill (HackerTrip-publish-work).
+  --organizer           Only install the organizer kit skill (HackerTrip-submit-event).
+  --dest <dir>          Target skills directory (default: ~/.claude/skills).
+  --force               Overwrite skills that already exist.
+
 ${D}Powered by HackerTrip  ${C}https://hackertrip.space${R}
 `);
 }
@@ -234,6 +242,8 @@ async function main() {
       return publishWork(rest);
     case 'submit-event':
       return submitEvent(rest);
+    case 'install-skills':
+      return installSkills(rest);
     case 'help':
       return printHelp();
     default:
