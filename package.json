@@ -9,7 +9,8 @@
   "files": [
     "bin/",
     "lib/",
-    "data/"
+    "data/",
+    "packages/"
   ],
   "keywords": [
     "hackathon",
