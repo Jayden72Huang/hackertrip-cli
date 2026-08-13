@@ -7,6 +7,8 @@ import { display, displayProjectInfo } from '../lib/display.mjs';
 import { publishWork } from '../lib/publish-work.mjs';
 import { submitEvent } from '../lib/submit-event.mjs';
 import { installSkills } from '../lib/install-skills.mjs';
+import { eventStatus } from '../lib/event-status.mjs';
+import { opsCommand } from '../lib/ops.mjs';
 import { randomInt } from 'node:crypto';
 
 const API_URL = process.env.HACKERTRIP_API || 'https://hackertrip.space/api/match';
@@ -14,7 +16,7 @@ const SYNC_URL = process.env.HACKERTRIP_SYNC_URL || '';
 const SYNC_TOKEN = process.env.HACKERTRIP_SYNC_TOKEN || '';
 const SYNC_CODE = process.env.HACKERTRIP_SYNC_CODE || '';
 
-const KNOWN_COMMANDS = ['match', 'publish-work', 'submit-event', 'install-skills', 'help'];
+const KNOWN_COMMANDS = ['match', 'publish-work', 'submit-event', 'event-status', 'event', 'install-skills', 'ops', 'help'];
 
 function parseMatchArgs(args) {
   let projectPath = process.cwd();
@@ -174,6 +176,7 @@ ${B}COMMANDS${R}
                  ${D}Run with no command, or "hackertrip ." , to use this.${R}
   ${C}publish-work${R}   Upload your project as a work to your HackerTrip profile.
   ${C}submit-event${R}   Submit a hackathon/event to the HackerTrip review drafts.
+  ${C}event-status${R}   Check the review status of events you submitted.
   ${C}install-skills${R} Install the Claude Code skills into ~/.claude/skills.
   ${C}help${R}           Show this help.
 
@@ -214,6 +217,11 @@ ${B}submit-event options${R}
   --organizer <text>    Organizer name.
   --contact <text>      Contact info.
 
+${B}event-status options${R}
+  --pair-code <code>    6-digit 提交配对码（小程序「主办方后台」生成，刚提交用过的也可查询）.
+  --event-url <url>     eventSync endpoint (env HACKERTRIP_EVENT_URL).
+  --sync-token <tok>    uploadToken (env HACKERTRIP_SYNC_TOKEN).
+
 ${B}install-skills options${R}
   --player              Only install the player kit skill (HackerTrip-publish-work).
   --organizer           Only install the organizer kit skill (HackerTrip-submit-event).
@@ -244,6 +252,15 @@ async function main() {
       return submitEvent(rest);
     case 'install-skills':
       return installSkills(rest);
+    case 'event-status':
+      return eventStatus(rest);
+    case 'ops':
+      // 运营内部命令：审核 / 查数 / 修数（需 HACKERTRIP_OPS_TOKEN）
+      return opsCommand(rest);
+    case 'event':
+      // 支持 "hackertrip event status" 两段式写法
+      if (rest[0] === 'status') return eventStatus(rest.slice(1));
+      return printHelp();
     case 'help':
       return printHelp();
     default:
