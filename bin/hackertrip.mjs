@@ -199,6 +199,7 @@ ${B}publish-work options${R}
   --cover <url>         Cover image URL.
   --awards <text>       Awards / honors.
   --tech <list>         Comma-separated tech stack (default: detected stack).
+  --no-process-stats    Skip the local process-stats snapshot (commits / active days / AI usage aggregates).
 
 ${B}submit-event options${R}
   --pair-code <code>    6-digit 提交配对码，先在小程序「主办方后台→生成提交码」生成 (required).
