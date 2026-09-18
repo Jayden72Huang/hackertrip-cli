@@ -9,14 +9,20 @@ import { submitEvent } from '../lib/submit-event.mjs';
 import { installSkills } from '../lib/install-skills.mjs';
 import { eventStatus } from '../lib/event-status.mjs';
 import { opsCommand } from '../lib/ops.mjs';
+import { login, readConfig } from '../lib/login.mjs';
 import { randomInt } from 'node:crypto';
 
 const API_URL = process.env.HACKERTRIP_API || 'https://hackertrip.space/api/match';
-const SYNC_URL = process.env.HACKERTRIP_SYNC_URL || '';
-const SYNC_TOKEN = process.env.HACKERTRIP_SYNC_TOKEN || '';
+const DEFAULT_SYNC_URL = 'https://test-1-d8gn28apcbf409627-1445960691.ap-shanghai.app.tcloudbase.com/pairSync';
+// login 之后凭证落在 ~/.hackertrip/config.json，优先级低于显式环境变量
+const SAVED = readConfig();
+const SYNC_URL = process.env.HACKERTRIP_SYNC_URL || SAVED.syncUrl || DEFAULT_SYNC_URL;
+const SYNC_TOKEN = process.env.HACKERTRIP_SYNC_TOKEN || SAVED.uploadToken || '';
 const SYNC_CODE = process.env.HACKERTRIP_SYNC_CODE || '';
+// 扫码绑定拿到的长期会话；有它就不需要一次性配对码
+const SYNC_SESSION = process.env.HACKERTRIP_SYNC_SESSION || SAVED.sessionToken || '';
 
-const KNOWN_COMMANDS = ['match', 'publish-work', 'submit-event', 'event-status', 'event', 'install-skills', 'ops', 'help'];
+const KNOWN_COMMANDS = ['login', 'match', 'publish-work', 'submit-event', 'event-status', 'event', 'install-skills', 'ops', 'help'];
 
 function parseMatchArgs(args) {
   let projectPath = process.cwd();
@@ -45,7 +51,7 @@ function parseMatchArgs(args) {
     }
   }
 
-  return { projectPath, sync, syncUrl, syncToken, syncCode };
+  return { projectPath, sync, syncUrl, syncToken, syncCode, syncSession: SYNC_SESSION };
 }
 
 function makePairCode() {
@@ -98,21 +104,30 @@ function buildSyncPayload(project, matches, pairCode) {
   };
 }
 
-async function pushToMiniProgram(project, matches, syncUrl, syncToken, syncCode) {
+async function pushToMiniProgram(project, matches, syncUrl, syncToken, syncCode, syncSession) {
   if (!syncUrl) {
-    console.log('\n\x1b[33mSync URL missing. Set HACKERTRIP_SYNC_URL or pass --sync-url <url>.\x1b[0m');
-    console.log('\x1b[2mThe URL should point to the pairSync HTTP trigger and accept { action: "push", pairCode, scan, card }.\x1b[0m');
+    console.log('\n\x1b[33m同步地址缺失。设置 HACKERTRIP_SYNC_URL 或用 --sync-url <url> 指定。\x1b[0m');
     return;
   }
   if (!syncToken) {
-    throw new Error('Sync token missing. Set HACKERTRIP_SYNC_TOKEN or pass --sync-token <token>.');
+    console.log('\n\x1b[33m还没有连接小程序。\x1b[0m');
+    console.log('\x1b[2m先运行一次 \x1b[0m\x1b[1mhackertrip login\x1b[0m\x1b[2m 扫码绑定，之后同步不用再输任何东西。\x1b[0m\n');
+    return;
   }
 
-  const pairCode = syncCode || makePairCode();
-  if (!/^\d{6}$/.test(pairCode)) {
-    throw new Error('Sync code must be a 6-digit code from the mini program.');
+  // 扫码绑定过就走长期会话：不用每次生成配对码，也不用回小程序手动拉取
+  const useSession = /^[0-9a-f]{24}$/.test(syncSession || '');
+  const pairCode = useSession ? '' : (syncCode || makePairCode());
+  if (!useSession && !/^\d{6}$/.test(pairCode)) {
+    throw new Error('配对码必须是小程序生成的 6 位数字。');
   }
-  const payload = buildSyncPayload(project, matches, pairCode);
+
+  const payload = buildSyncPayload(project, matches, pairCode || 'session');
+  if (useSession) {
+    payload.sessionToken = syncSession;
+    delete payload.pairCode;
+  }
+
   const res = await fetch(syncUrl, {
     method: 'POST',
     headers: {
@@ -122,18 +137,30 @@ async function pushToMiniProgram(project, matches, syncUrl, syncToken, syncCode)
     body: JSON.stringify(payload),
   });
   const json = await res.json().catch(() => null);
-  if (!res.ok || !json || !json.ok) {
-    const message = json && json.message ? json.message : `HTTP ${res.status}`;
-    throw new Error(`Sync failed: ${message}`);
+  const result = json && json.result ? json.result : json;
+  if (!res.ok || !result || !result.ok) {
+    const message = result && result.message ? result.message : `HTTP ${res.status}`;
+    // 绑定失效是最常见的失败，直接告诉用户怎么恢复，而不是甩一句错误码
+    if (result && /SESSION_(NOT_FOUND|EXPIRED|UNCLAIMED)/.test(result.code || '')) {
+      console.log(`\n\x1b[33m${message}\x1b[0m`);
+      console.log('\x1b[2m运行 \x1b[0m\x1b[1mhackertrip login\x1b[0m\x1b[2m 重新扫码连接。\x1b[0m\n');
+      return;
+    }
+    throw new Error(`同步失败：${message}`);
   }
 
-  console.log('\n\x1b[36mMini Program sync ready\x1b[0m');
-  console.log(`   Pair code: \x1b[1m${pairCode}\x1b[0m`);
-  console.log('   回到 HackerTrip 小程序 -> 我的 -> Skills 同步，点击「拉取同步结果」。');
+  if (useSession) {
+    console.log('\n\x1b[32m✓ 已同步到小程序\x1b[0m');
+    console.log('\x1b[2m打开小程序即可看到本次匹配结果。\x1b[0m');
+  } else {
+    console.log('\n\x1b[36m小程序同步就绪\x1b[0m');
+    console.log(`   配对码：\x1b[1m${pairCode}\x1b[0m`);
+    console.log('   回小程序 -> 我的 -> 连接桌面端，点「拉取同步结果」。');
+  }
 }
 
 async function runMatch(args) {
-  const { projectPath, sync, syncUrl, syncToken, syncCode } = parseMatchArgs(args);
+  const { projectPath, sync, syncUrl, syncToken, syncCode, syncSession } = parseMatchArgs(args);
 
   console.log('\n\x1b[36m🔍 Scanning project...\x1b[0m');
 
@@ -156,7 +183,7 @@ async function runMatch(args) {
   display(matches, source);
 
   if (sync) {
-    await pushToMiniProgram(project, matches, syncUrl, syncToken, syncCode);
+    await pushToMiniProgram(project, matches, syncUrl, syncToken, syncCode, syncSession);
   }
 }
 
@@ -178,11 +205,17 @@ ${B}COMMANDS${R}
   ${C}submit-event${R}   Submit a hackathon/event to the HackerTrip review drafts.
   ${C}event-status${R}   Check the review status of events you submitted.
   ${C}install-skills${R} Install the Claude Code skills into ~/.claude/skills.
+  ${C}login${R}          扫码把这台电脑连到小程序账号（连一次，之后同步免输入）。
   ${C}help${R}           Show this help.
+
+${B}login options${R}
+  --sync-url <url>      pairSync HTTP trigger URL（默认已内置，通常不用填）。
+  --keep-qr             绑定成功后保留本地的小程序码图片，默认会删掉。
 
 ${B}match options${R}
   --path <dir>          Project directory to scan (default: cwd).
   --sync                Push the scan + matches to the mini program.
+                        跑过 login 就不用再带 --sync-token / --sync-code。
   --sync-url <url>      pairSync HTTP trigger URL (env HACKERTRIP_SYNC_URL).
   --sync-token <token>  Sync token / uploadToken (env HACKERTRIP_SYNC_TOKEN).
   --sync-code <code>    6-digit pair code from the mini program (env HACKERTRIP_SYNC_CODE).
@@ -245,6 +278,8 @@ async function main() {
 
   const rest = argv.slice(1);
   switch (command) {
+    case 'login':
+      return login(rest);
     case 'match':
       return runMatch(rest);
     case 'publish-work':
