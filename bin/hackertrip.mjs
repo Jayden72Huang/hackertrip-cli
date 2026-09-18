@@ -123,6 +123,18 @@ async function pushToMiniProgram(project, matches, syncUrl, syncToken, syncCode,
   }
 
   const payload = buildSyncPayload(project, matches, pairCode || 'session');
+  // 顺带把这台机器的协作数据推上去，小程序「桌面端 CLI 协作」卡读它。
+  // 采集失败不影响同步本身——匹配结果才是这条命令的主产物。
+  try {
+    const { collectProcessStats } = await import('../lib/process-stats.mjs');
+    const stats = await collectProcessStats(process.cwd());
+    if (stats) payload.processStats = stats;
+  } catch (_) { /* 没有 git 或没有 Claude 日志时拿不到，静默跳过 */ }
+  // 设备画像随同步补写：login 之前绑的老会话靠这个把机器信息补上
+  try {
+    const { describeDevice } = await import('../lib/login.mjs');
+    payload.device = describeDevice();
+  } catch (_) { /* 拿不到就算了，不影响同步 */ }
   if (useSession) {
     payload.sessionToken = syncSession;
     delete payload.pairCode;
