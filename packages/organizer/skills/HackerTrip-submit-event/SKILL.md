@@ -32,7 +32,7 @@ description: 帮黑客松主办方把活动提交到 HackerTrip 平台草稿箱�
 
 ### 1. 安装 CLI
 ```bash
-npx hackertrip --help   # 或 npm i -g hackertrip
+npx hackertrip --help   # 免安装，后续命令一律 npx hackertrip …
 ```
 
 ### 2. 在小程序生成配对码 + token（绑定主办方账号）
@@ -112,7 +112,7 @@ export HACKERTRIP_SYNC_TOKEN="<上一步主办方后台给出的 token>"
 
 ### 方式 A：命令行直接传字段
 ```bash
-hackertrip submit-event \
+npx hackertrip submit-event \
   --pair-code 482915 \
   --name "AdventureX 2026 黑客松" \
   --city "杭州" \
@@ -148,7 +148,7 @@ hackertrip submit-event \
 ```
 再提交（配对码仍要在命令行传）：
 ```bash
-hackertrip submit-event --pair-code 482915 --from event.json
+npx hackertrip submit-event --pair-code 482915 --from event.json
 ```
 > `--from` 文件里的字段会作为基底，命令行同名参数可覆盖个别项。`--pair-code` 不能写进文件，必须命令行传，用于绑定主办方账号。
 

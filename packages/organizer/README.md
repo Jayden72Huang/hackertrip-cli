@@ -11,10 +11,12 @@
 
 ## 三步上手
 
-### 1. 装 CLI
+### 1. 准备 CLI（免安装）
+
+需要 Node.js >= 18，之后所有命令都用 `npx hackertrip …` 直接跑，不用全局安装：
 
 ```bash
-npm i -g hackertrip
+npx hackertrip --help
 # 或从源码
 git clone https://github.com/Jayden72Huang/hackertrip-cli && cd hackertrip-cli && npm link
 ```
@@ -31,7 +33,7 @@ export HACKERTRIP_SYNC_TOKEN="<uploadToken>"
 ### 3. 提交活动
 
 ```bash
-hackertrip submit-event \
+npx hackertrip submit-event \
   --pair-code 482915 \
   --name "AdventureX 2026 黑客松" \
   --city "杭州" \

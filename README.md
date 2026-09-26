@@ -23,19 +23,13 @@ HackerTrip 是面向黑客松的开发者社区。这个开源合集把"参加�
 
 ## 安装
 
-免安装直接用：
+免安装，直接用 `npx`（每次自动拉最新版）：
 
 ```bash
 npx hackertrip --help
 ```
 
-或全局安装：
-
-```bash
-npm i -g hackertrip
-```
-
-> 需要 Node.js >= 18。
+> 需要 Node.js >= 18。不建议 `npm i -g`：官方 pkg 装的 Node 在 macOS 上会因 `/usr/local/lib/node_modules` 归 root 而报 EACCES。
 
 ---
 
@@ -46,13 +40,13 @@ npm i -g hackertrip
 在项目目录里扫描代码（读 `package.json` / `README` / 源码，推断技术栈与画像），返回最匹配的黑客松：
 
 ```bash
-hackertrip match --path .
+npx hackertrip match --path .
 ```
 
 加 `--sync` 可把扫描结果 + 匹配卡片同步到小程序（需配对码，见下方环境变量）：
 
 ```bash
-hackertrip match --path . --sync --sync-code 482915
+npx hackertrip match --path . --sync --sync-code 482915
 ```
 
 ### 2. `publish-work` —— 选手发布作品
@@ -60,7 +54,7 @@ hackertrip match --path . --sync --sync-code 482915
 把本地 repo 里的作品发布到 HackerTrip 个人主页。CLI 先自动扫出项目名 / 技术栈 / 描述，你再补全 demo / 封面 / 获奖：
 
 ```bash
-hackertrip publish-work \
+npx hackertrip publish-work \
   --pair-code 482915 \
   --path . \
   --name "Haki 暗号" \
@@ -87,7 +81,7 @@ hackertrip publish-work \
 把黑客松活动提交到平台草稿箱（人工审核后上架）：
 
 ```bash
-hackertrip submit-event \
+npx hackertrip submit-event \
   --pair-code 482915 \
   --name "AdventureX 2026 黑客松" \
   --city "杭州" \
@@ -105,7 +99,7 @@ hackertrip submit-event \
 信息多时可写成 `event.json` 再 `--from` 提交：
 
 ```bash
-hackertrip submit-event --pair-code 482915 --from event.json
+npx hackertrip submit-event --pair-code 482915 --from event.json
 ```
 
 | 参数 | 说明 |

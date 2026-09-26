@@ -30,11 +30,7 @@ description: 帮黑客松参赛选手把作品上传到 HackerTrip 个人主页�
 ### 1. 安装 CLI
 免装直接跑：
 ```bash
-npx hackertrip --help
-```
-或全局安装：
-```bash
-npm i -g hackertrip
+npx hackertrip --help   # 免安装，后续命令一律 npx hackertrip …
 ```
 
 ### 2. 在小程序生成配对码 + uploadToken
@@ -55,7 +51,7 @@ export HACKERTRIP_SYNC_TOKEN="<上一步的 uploadToken>"
 
 在作品目录里让 CLI 扫描 repo（`scanProject` 会读 package.json / README / 源码，推断项目名、技术栈、描述、关键词）：
 ```bash
-hackertrip match --path .
+npx hackertrip match --path .
 ```
 > 这一步顺带给出"这个作品适合投哪些黑客松"，也帮你确认扫出来的项目画像对不对。
 
@@ -97,7 +93,7 @@ hackertrip match --path .
 
 把配对码和补全后的字段拼成命令：
 ```bash
-hackertrip publish-work \
+npx hackertrip publish-work \
   --pair-code 482915 \
   --path . \
   --name "Haki 暗号" \
@@ -126,8 +122,8 @@ hackertrip publish-work \
 
 一个作品一条命令。要发多个就**换目录、用同一个配对码（30 分钟内）逐个跑**：
 ```bash
-hackertrip publish-work --pair-code 482915 --path ../project-a --demo ...
-hackertrip publish-work --pair-code 482915 --path ../project-b --demo ...
+npx hackertrip publish-work --pair-code 482915 --path ../project-a --demo ...
+npx hackertrip publish-work --pair-code 482915 --path ../project-b --demo ...
 ```
 > 配对码过期了就回小程序重新生成一个。多个作品同步后，都在小程序「我的→作品」里逐个预览确认、点『发布』才公开。
 

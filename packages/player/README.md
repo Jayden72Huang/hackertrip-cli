@@ -12,10 +12,12 @@
 
 ## 三步上手
 
-### 1. 装 CLI
+### 1. 准备 CLI（免安装）
+
+需要 Node.js >= 18，之后所有命令都用 `npx hackertrip …` 直接跑，不用全局安装：
 
 ```bash
-npm i -g hackertrip
+npx hackertrip --help
 # 或从源码
 git clone https://github.com/Jayden72Huang/hackertrip-cli && cd hackertrip-cli && npm link
 ```
@@ -37,13 +39,13 @@ export HACKERTRIP_SYNC_TOKEN="<uploadToken>"
 **找比赛**（纯本地扫描，代码不上传）：
 
 ```bash
-hackertrip match --path .
+npx hackertrip match --path .
 ```
 
 **发作品**：
 
 ```bash
-hackertrip publish-work \
+npx hackertrip publish-work \
   --pair-code 482915 \
   --path . \
   --demo "https://your.demo.app" \
