@@ -15,8 +15,8 @@ description: 帮黑客松主办方把活动提交到 HackerTrip 平台草稿箱�
 ## 一、流程总览
 
 ```
-小程序「主办方后台」生成配对码+token → 收集活动信息(口述 / 海报图OCR)
-   → 过【准入门槛自检(4道GATE) + 格式自检】 → submit-event --pair-code 提交
+小程序「发布赛事 → 让 AI 帮我提交」复制编号+密钥 → 收集活动信息(口述 / 海报图OCR / 文档)
+   → 过【准入门槛自检(4道GATE) + 格式自检】 → submit-event --organizer-no/--submit-key 提交
    → CLI 校验 → 云端再校验 → 进【绑账号草稿】待审核台人工审核
                                           │
               任一层校验不齐全 / 格式错 → 直接拒绝，不进库
@@ -35,16 +35,14 @@ description: 帮黑客松主办方把活动提交到 HackerTrip 平台草稿箱�
 npx hackertrip --help   # 免安装，后续命令一律 npx hackertrip …
 ```
 
-### 2. 在小程序生成配对码 + token（绑定主办方账号）
-引导用户：打开 **HackerTrip 小程序 → 主办方后台 → 生成提交配对码**，会拿到：
-- **6 位配对码**（如 `482915`）——一次性、有时效，把这次提交**绑定到主办方本人的小程序账号**。
-- **token**——提交鉴权用，对应 CLI 的环境变量 `HACKERTRIP_SYNC_TOKEN`。
+### 2. 在小程序复制主办方凭证（绑定主办方账号）
+引导用户：打开 **HackerTrip 小程序 → 发布赛事 → 让 AI 帮我提交**（需已通过组织者认证），会拿到：
+- **主办方编号**（形如 `HT-XXXXXX`）——身份标识。
+- **提交密钥**——鉴权凭证，长期有效，可在小程序一键重置；重置后旧命令立即失效。
 
-### 3. 配置环境变量
-```bash
-export HACKERTRIP_SYNC_TOKEN="<上一步主办方后台给出的 token>"
-```
-> 缺失时 CLI 会报错提示。配对码在命令里用 `--pair-code` 传入，赛事会因此绑定到该主办方账号。
+用户通常会直接把小程序生成的整段指令贴给你，里面已经带好 `--organizer-no` 和 `--submit-key`，照用即可；提交地址已内置在 CLI 里，不需要配置。
+
+> 旧链路仍兼容：主办方后台生成 6 位一次性配对码，用 `--pair-code` + 环境变量 `HACKERTRIP_SYNC_TOKEN` 提交。没有编号密钥时才走这条。
 
 ---
 
@@ -64,7 +62,12 @@ export HACKERTRIP_SYNC_TOKEN="<上一步主办方后台给出的 token>"
 | 赛道 | `--tracks` | 逗号分隔，如 `AI Agent,Web3` |
 | 一句话简介 | `--summary` | 给选手看的活动亮点 |
 | 主办方 | `--organizer` | 谁办的 |
-| 联系方式 | `--contact` | 报名/咨询入口 |
+| 联系方式 | `--contact` | 微信号 / 手机号 / 邮箱 |
+| 报名链接 | `--registration-url` | 官网缺失时会自动顶替 website |
+| 报名截止 | `--deadline` | `YYYY-MM-DD` |
+| 封面图 | `--cover` | 图片 URL |
+
+> 写 `event.json` 时**直接用云端字段名**（`startDate` `endDate` `registrationStartDate` `registrationDeadline` `startTime` `endTime` `registrationUrl` `contactEmail` `cover` `prizePool` `location` `agenda` `live` `category` …），与小程序「让 AI 帮我提交」指令模板一致；旧名 `start` / `end` / `prize` / `contact` 也兼容。
 
 ### 输入方式 A：用户口述
 逐项确认，缺必填项就追问。
@@ -102,7 +105,7 @@ export HACKERTRIP_SYNC_TOKEN="<上一步主办方后台给出的 token>"
 - **日期**：`--start` / `--end` 必须是 `YYYY-MM-DD`；不是这个格式直接修正，别提交。
 - **起止先后**：`--start` ≤ `--end`，开始不能晚于结束。
 - **URL**：`--website` 必须以 `http://` 或 `https://` 开头，是真实可访问链接。
-- **必填齐全**：`--pair-code` + `name` + `start` + `end` + `city` + `website` 一个都不能少。
+- **必填齐全**：凭证（`--organizer-no` + `--submit-key`，或旧链路 `--pair-code`）+ `name` + `startDate` + `endDate` + `city` + `website` 一个都不能少。
 
 > 一句话给主办方讲清楚：**奖金、日期不确定就如实留空，不要编造；字段不齐或日期/URL 格式不对，CLI 和云端会直接拒掉、不进库；提交即进绑账号草稿，由平台审核台人工审核，假信息/垃圾会被拒。**
 
@@ -113,7 +116,7 @@ export HACKERTRIP_SYNC_TOKEN="<上一步主办方后台给出的 token>"
 ### 方式 A：命令行直接传字段
 ```bash
 npx hackertrip submit-event \
-  --pair-code 482915 \
+  --organizer-no HT-XXXXXX --submit-key <提交密钥> \
   --name "AdventureX 2026 黑客松" \
   --city "杭州" \
   --start 2026-07-25 \
@@ -126,7 +129,7 @@ npx hackertrip submit-event \
   --organizer "AdventureX 组委会" \
   --contact "公众号 AdventureX 后台报名"
 ```
-- `--pair-code` **必填**，就是主办方后台那 6 位码，赛事会绑定到该主办方账号。
+- `--organizer-no` + `--submit-key` 就是小程序给的编号和密钥，赛事会绑定到该主办方账号；可反复使用。
 - CLI 会先在本地做一遍格式校验（日期 `YYYY-MM-DD`、URL `http(s)`、起止先后、必填齐全），**不齐全/格式错当场报错、不发送**；通过后云端入库前还会再校验一遍，云端拒绝也不进库。
 
 ### 方式 B：从文件提交（信息多时更清爽）
@@ -135,41 +138,47 @@ npx hackertrip submit-event \
 {
   "name": "AdventureX 2026 黑客松",
   "city": "杭州",
-  "start": "2026-07-25",
-  "end": "2026-07-27",
+  "location": "杭州市余杭区 XX 路 1 号",
+  "startDate": "2026-07-25",
+  "endDate": "2026-07-27",
+  "registrationDeadline": "2026-07-20",
+  "startTime": "09:00",
+  "endTime": "18:00",
   "website": "https://adventure-x.org",
+  "registrationUrl": "https://adventure-x.org/apply",
   "mode": "offline",
-  "prize": "总奖池 50 万元",
+  "prizePool": "总奖池 50 万元",
   "tracks": ["AI Agent", "硬件", "Web3"],
   "summary": "全国最大青年黑客松，48 小时连续开发",
-  "organizer": "AdventureX 组委会",
-  "contact": "公众号 AdventureX 后台报名"
+  "organizerName": "AdventureX 组委会",
+  "contactEmail": "hello@adventure-x.org",
+  "cover": "https://adventure-x.org/poster.png"
 }
 ```
-再提交（配对码仍要在命令行传）：
+再提交（凭证仍在命令行传）：
 ```bash
-npx hackertrip submit-event --pair-code 482915 --from event.json
+npx hackertrip submit-event --organizer-no HT-XXXXXX --submit-key <提交密钥> --from event.json
 ```
-> `--from` 文件里的字段会作为基底，命令行同名参数可覆盖个别项。`--pair-code` 不能写进文件，必须命令行传，用于绑定主办方账号。
+> `--from` 文件里的字段会作为基底，命令行同名参数可覆盖个别项。凭证不写进文件，必须命令行传；文件里云端不认识的键会被忽略并在终端提示。
 
 ---
 
 ## 六、第 4 步：告知结果
 
-提交成功后告诉主办方：**活动已绑定你的小程序账号、进入 HackerTrip 草稿箱，等待平台审核台人工审核，审核通过后才会对选手公开。** 期间若有信息需补充，可用同一配对码重新提交修正。
+提交成功后告诉主办方：**活动已绑定你的小程序账号、进入 HackerTrip 草稿箱；请回小程序「赛事管理」核对内容，确认后提交平台审核，审核通过后才会对选手公开。** 需要补充信息可以在小程序里直接改，或用同一组编号密钥重新提交。
 若 CLI 或云端报「字段不齐 / 格式错误」被拒，按提示补全格式（日期、URL、起止先后、必填项）后重提，**被拒的不会进库**。
 
 ---
 
 ## 七、自检清单
 
-- [ ] CLI 可用、`HACKERTRIP_SYNC_TOKEN` 已配置
-- [ ] 已在小程序「主办方后台」生成 6 位配对码（绑账号）
+- [ ] Node.js ≥ 18，`npx hackertrip --help` 能跑
+- [ ] 已从小程序「发布赛事 → 让 AI 帮我提交」拿到主办方编号 + 提交密钥（绑账号）
 - [ ] 信息已收齐（口述确认 / 海报 OCR 后复述确认）
 - [ ] 过门槛 1：是真黑客松（非评测/创业赛/训练营/征集/路演/内部赛）
 - [ ] 过门槛 2：未过期、年份已核对
 - [ ] 过门槛 3：奖金/日期属实，不确定的已留空
 - [ ] 过门槛 4：name + 时间 + 地点 + 官网 四项必填齐全
 - [ ] 格式自检：日期 `YYYY-MM-DD`、URL `http(s)`、start ≤ end
-- [ ] `submit-event --pair-code` 提交成功（CLI/云端两层校验均通过）
+- [ ] `submit-event --organizer-no/--submit-key` 提交成功（CLI/云端两层校验均通过）
 - [ ] 已告知主办方「已绑账号进草稿、待审核台人工审核」

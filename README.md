@@ -82,7 +82,7 @@ npx hackertrip publish-work \
 
 ```bash
 npx hackertrip submit-event \
-  --pair-code 482915 \
+  --organizer-no HT-XXXXXX --submit-key <提交密钥> \
   --name "AdventureX 2026 黑客松" \
   --city "杭州" \
   --start 2026-07-25 \
@@ -96,19 +96,22 @@ npx hackertrip submit-event \
   --contact "公众号后台报名"
 ```
 
-信息多时可写成 `event.json` 再 `--from` 提交：
+信息多时可写成 `event.json` 再 `--from` 提交（小程序「发布赛事 → 让 AI 帮我提交」复制出来的指令就是这个形态）：
 
 ```bash
-npx hackertrip submit-event --pair-code 482915 --from event.json
+npx hackertrip submit-event --organizer-no HT-XXXXXX --submit-key <提交密钥> --from event.json
 ```
+
+`event.json` 直接用云端字段名，与小程序表单同名：`name` `city` `location` `startDate` `endDate` `registrationStartDate` `registrationDeadline` `startTime` `endTime` `website` `registrationUrl` `contactEmail` `cover` `prizePool` `tracks` `summary` `mode` `category` `agenda` `live` …。旧写法 `start` / `end` / `prize` / `contact` 也兼容。
 
 | 参数 | 说明 |
 |---|---|
-| `--pair-code` | **必填**，小程序「主办方后台 → 生成提交码」生成的 6 位码，绑定主办方账号 |
+| `--organizer-no` + `--submit-key` | **推荐**，小程序「发布赛事 → 让 AI 帮我提交」复制；长期有效、可在小程序一键重置 |
+| `--pair-code` | 旧链路：主办方后台生成的 6 位一次性码，需配 `HACKERTRIP_SYNC_TOKEN` |
 | `--from` | 从 JSON 文件读取字段（命令行同名参数可覆盖） |
 | `--name` / `--city` | **必填** 活动名 / 城市（线上填"线上"） |
-| `--start` / `--end` | **必填** 开始 / 结束日期 `YYYY-MM-DD` |
-| `--website` | **必填** 官网或报名链接 |
+| `--start` / `--end` | **必填** 开始 / 结束日期 `YYYY-MM-DD`（即 `startDate` / `endDate`） |
+| `--website` | **必填** 官网；缺省时自动用 `--registration-url` 顶上 |
 | `--mode` | `offline` / `online` / `hybrid` |
 | `--prize` / `--tracks` | 奖金 / 赛道（不确定就留空，别编造） |
 | `--summary` / `--organizer` / `--contact` | 简介 / 主办方 / 联系方式 |
@@ -124,12 +127,14 @@ npx hackertrip submit-event --pair-code 482915 --from event.json
 | `HACKERTRIP_API` | `match` | 匹配接口，默认 `https://hackertrip.space/api/match` |
 | `HACKERTRIP_SYNC_URL` | `match --sync` / `publish-work` | pairSync HTTP 触发器地址 |
 | `HACKERTRIP_SYNC_TOKEN` | `match --sync` / `publish-work` | 小程序配对生成的 uploadToken |
-| `HACKERTRIP_EVENT_URL` | `submit-event` | 活动草稿提交接口地址 |
+| `HACKERTRIP_ORGANIZER_NO` / `HACKERTRIP_SUBMIT_KEY` | `submit-event` / `event-status` | 主办方编号 + 提交密钥，等价于 `--organizer-no` / `--submit-key` |
+| `HACKERTRIP_EVENT_URL` | `submit-event` / `event-status` | 活动提交接口地址，默认已内置，一般不用设 |
 
 ```bash
 export HACKERTRIP_SYNC_URL="<pairSync 同步地址>"
 export HACKERTRIP_SYNC_TOKEN="<小程序配对的 uploadToken>"
-export HACKERTRIP_EVENT_URL="<活动提交接口地址>"
+export HACKERTRIP_ORGANIZER_NO="HT-XXXXXX"      # 主办方，可选：不想每次在命令里带凭证时用
+export HACKERTRIP_SUBMIT_KEY="<提交密钥>"
 ```
 
 ---

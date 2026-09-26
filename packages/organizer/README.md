@@ -21,20 +21,17 @@ npx hackertrip --help
 git clone https://github.com/Jayden72Huang/hackertrip-cli && cd hackertrip-cli && npm link
 ```
 
-### 2. 小程序拿提交码
+### 2. 小程序复制凭证
 
-打开 **HackerTrip 微信小程序 → 主办方后台 → 生成提交码**，得到 6 位配对码（绑定你的主办方账号，30 分钟一次性）和提交地址 + token：
+打开 **HackerTrip 微信小程序 → 发布赛事 → 让 AI 帮我提交**（需先通过组织者认证），页面会给出**主办方编号**和**提交密钥**，并直接生成一条可复制给 AI 的完整指令。密钥长期有效，外泄了在小程序一键重置，旧命令立即失效。
 
-```bash
-export HACKERTRIP_EVENT_URL="<主办方后台给出的提交地址>"
-export HACKERTRIP_SYNC_TOKEN="<uploadToken>"
-```
+> 旧链路仍可用：主办方后台生成 6 位一次性配对码，用 `--pair-code` + `HACKERTRIP_SYNC_TOKEN` 提交。
 
 ### 3. 提交活动
 
 ```bash
 npx hackertrip submit-event \
-  --pair-code 482915 \
+  --organizer-no HT-XXXXXX --submit-key <提交密钥> \
   --name "AdventureX 2026 黑客松" \
   --city "杭州" \
   --start 2026-07-25 \
@@ -46,7 +43,7 @@ npx hackertrip submit-event \
   --organizer "AdventureX 组委会"
 ```
 
-信息多时写成 `event.json` 再 `--from event.json` 提交。
+信息多时写成 `event.json` 再 `--from event.json` 提交；字段名与小程序表单一致（`startDate` / `endDate` / `registrationDeadline` / `registrationUrl` / `contactEmail` / `cover` / `prizePool` …），小程序「让 AI 帮我提交」的指令模板里有完整清单。
 
 **必填四件套：名称 + 起止时间 + 城市（线上填"线上"）+ 官网链接。** 奖金 / 日期不确定就留空，不要编造 —— 提交会经过准入门槛 + 格式双层校验，再由平台人工审核后上架。
 

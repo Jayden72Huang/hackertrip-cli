@@ -247,26 +247,37 @@ ${B}publish-work options${R}
   --no-process-stats    Skip the local process-stats snapshot (commits / active days / AI usage aggregates).
 
 ${B}submit-event options${R}
-  --pair-code <code>    6-digit 提交配对码，先在小程序「主办方后台→生成提交码」生成 (required).
-  --event-url <url>     eventSync endpoint (env HACKERTRIP_EVENT_URL).
+  --organizer-no <no>   主办方编号，小程序「发布赛事→让 AI 帮我提交」复制 (env HACKERTRIP_ORGANIZER_NO).
+  --submit-key <key>    提交密钥，与编号成对使用，长期有效可重置 (env HACKERTRIP_SUBMIT_KEY).
+  --pair-code <code>    旧链路：主办方后台生成的 6 位一次性配对码（需配 --sync-token）.
+  --sync-token <tok>    旧链路 uploadToken / x-sync-token (env HACKERTRIP_SYNC_TOKEN).
+  --event-url <url>     eventSync endpoint (env HACKERTRIP_EVENT_URL，默认已内置).
   --from <file>         Read fields from a JSON or key:value/md file.
-  --sync-token <tok>    uploadToken / x-sync-token (env HACKERTRIP_SYNC_TOKEN).
+                        JSON 直接用云端字段名（startDate/endDate/prizePool/registrationUrl/contactEmail/cover…），
+                        与小程序「让 AI 帮我提交」指令一致；旧名 start/end/prize/contact 也兼容.
   --name <text>         Event name (required).
   --city <text>         City (required).
-  --start <date>        Start date (required).
-  --end <date>          End date (required).
-  --website <url>       Event website (required).
+  --location <text>     Venue address.
+  --start <date>        Start date YYYY-MM-DD (required; alias --start-date).
+  --end <date>          End date YYYY-MM-DD (required; alias --end-date).
+  --deadline <date>     Registration deadline YYYY-MM-DD.
+  --website <url>       Event website (required; falls back to --registration-url).
+  --registration-url <url>  Signup link.
   --mode <text>         online / offline / hybrid.
+  --category <text>     hackathon / ai-event / incubator (default hackathon).
   --prize <text>        Prize pool.
   --tracks <list>       Comma-separated tracks.
   --summary <text>      Event summary.
+  --cover <url>         Cover image URL.
   --organizer <text>    Organizer name.
-  --contact <text>      Contact info.
+  --contact <text>      Contact (wechat / phone / email).
 
 ${B}event-status options${R}
-  --pair-code <code>    6-digit 提交配对码（小程序「主办方后台」生成，刚提交用过的也可查询）.
-  --event-url <url>     eventSync endpoint (env HACKERTRIP_EVENT_URL).
-  --sync-token <tok>    uploadToken (env HACKERTRIP_SYNC_TOKEN).
+  --organizer-no <no>   主办方编号 (env HACKERTRIP_ORGANIZER_NO).
+  --submit-key <key>    提交密钥 (env HACKERTRIP_SUBMIT_KEY).
+  --pair-code <code>    旧链路：6 位配对码（刚提交用过的也可查询，需配 --sync-token）.
+  --sync-token <tok>    旧链路 uploadToken (env HACKERTRIP_SYNC_TOKEN).
+  --event-url <url>     eventSync endpoint (env HACKERTRIP_EVENT_URL，默认已内置).
 
 ${B}install-skills options${R}
   --player              Only install the player kit skill (HackerTrip-publish-work).
