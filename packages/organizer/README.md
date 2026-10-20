@@ -1,77 +1,64 @@
-# 📣 HackerTrip 主办方包（Organizer Kit)
+# HackerTrip 主办方 CLI & Skills
 
-> 给黑客松主办方 / 承办方 / 社区组织者：**丢一张海报或一条命令，活动上架 HackerTrip 网站 + 小程序双端，触达全网选手**。
+给黑客松主办方、社区和已开通频道的孵化项目方：把赛事文档交给 Agent，补齐和确认信息后，保存到自己的「待提交」草稿箱。
 
-## 包里有什么
+## 推荐：选中 Skill，再附赛事文档
 
-| 内容 | 说明 |
-|---|---|
-| CLI 命令 `hackertrip submit-event` | 把活动提交到平台草稿箱，人工审核后上架分发 |
-| Skill `HackerTrip-submit-event` | 给 Claude Code 等 AI agent 用：口述活动或丢海报图，AI 自动整理成标准字段并提交 |
-
-## 三步上手
-
-### 1. 准备 CLI（免安装）
-
-需要 Node.js >= 18，之后所有命令都用 `npx hackertrip …` 直接跑，不用全局安装：
+先安装一次（电脑需要 Node.js ≥18）：
 
 ```bash
-npx hackertrip --help
-# 或从源码
-git clone https://github.com/Jayden72Huang/hackertrip-cli && cd hackertrip-cli && npm link
+npx hackertrip@latest install-skills --organizer
 ```
 
-### 2. 小程序复制凭证
+在支持技能提及的 Agent 中选择 `hackertrip-submit-event`，附上文档或官网，例如：
 
-打开 **HackerTrip 微信小程序 → 发布赛事 → 让 AI 帮我提交**（需先通过组织者认证），页面会给出**主办方编号**和**提交密钥**，并直接生成一条可复制给 AI 的完整指令。密钥长期有效，外泄了在小程序一键重置，旧命令立即失效。
+```text
+@hackertrip-submit-event
+根据这份赛事文档整理信息，不确定的内容用选择题问我，确认后存入我的草稿箱。
+[附赛事文档、官网或海报]
+```
 
-> 旧链路仍可用：主办方后台生成 6 位一次性配对码，用 `--pair-code` + `HACKERTRIP_SYNC_TOKEN` 提交。
+Agent 会阅读资料、核对信息完整度，集中询问缺失或冲突的关键项。必需字段齐全后，展示摘要并调用 CLI 保存草稿；可选信息暂缺时由主办方选择补齐或先保存。Skill 不代为提交平台审核。
 
-### 3. 提交活动
+首次使用从小程序「我的 → 我要举办 → 发起赛事&项目 / 发布黑客松 → 让 AI 帮我提交」复制专属指令，提供给自己的 Agent 完成账号绑定凭证。未认证先完成主办方认证；指令含密钥，不发群聊。
+
+默认安装到 Claude Code；其他工具用其实际的技能选择方式，不保证都采用 `@` 语法。不便安装 Skill 时，也可直接把小程序完整指令连同赛事资料交给 Agent。
+
+> 1.4.1 已公开发布，配套云函数已部署；小程序开发版 2.3.22 已上传，正式版仍需微信发布。公开包、Skills 安装与真实草稿查询已回读验证。
+
+## 两条业务命令
+
+需要 Node.js ≥18，新流程 CLI ≥1.4.1，无需全局安装。`npx hackertrip@latest --version` 可查看版本。
 
 ```bash
-npx hackertrip submit-event \
-  --organizer-no HT-XXXXXX --submit-key <提交密钥> \
-  --name "AdventureX 2026 黑客松" \
-  --city "杭州" \
-  --start 2026-07-25 \
-  --end 2026-07-27 \
-  --website "https://adventure-x.org" \
-  --mode offline \
-  --prize "总奖池 50 万元" \
-  --tracks "AI Agent,硬件,Web3" \
-  --organizer "AdventureX 组委会"
+# 提交：每次创建一个新草稿
+npx hackertrip@latest submit-event --organizer-no <主办方编号> --submit-key <提交密钥> --from event.json
+
+# 查询：最多最近 20 条，不会重复提交
+npx hackertrip@latest event-status --organizer-no <主办方编号> --submit-key <提交密钥>
 ```
 
-信息多时写成 `event.json` 再 `--from event.json` 提交；字段名与小程序表单一致（`startDate` / `endDate` / `registrationDeadline` / `registrationUrl` / `contactEmail` / `cover` / `prizePool` …），小程序「让 AI 帮我提交」的指令模板里有完整清单。
+默认接口已内置。也支持环境变量 HACKERTRIP_ORGANIZER_NO / HACKERTRIP_SUBMIT_KEY。凭证从小程序复制，外泄回原页面重置。
 
-**必填四件套：名称 + 起止时间 + 城市（线上填"线上"）+ 官网链接。** 奖金 / 日期不确定就留空，不要编造 —— 提交会经过准入门槛 + 格式双层校验，再由平台人工审核后上架。
+提交至少需 name、city、startDate、endDate、website。日期 YYYY-MM-DD；时刻 HH:mm（北京时间）。可补报名时间、地点、简介、封面链接、奖金、赛道、联系与报名方式、赛程、视频号直播及官方转播申请。转播申请字段放在 live 内；不填资料里没有的信息。孵化项目须有频道权限，AI福利在小程序人工填写。
 
-## 用 AI 帮你跑（推荐）
-
-一条命令把主办方 skill 装进 Claude Code：
+## 两个主办方 Skills
 
 ```bash
-npx hackertrip install-skills --organizer
+npx hackertrip@latest install-skills --organizer
 ```
 
-（或手动 `cp -r skills/HackerTrip-submit-event ~/.claude/skills/`）
+默认安装到 `~/.claude/skills`，重新打开 Claude Code 会话：
 
-然后在 Claude Code 里直接说：
+| Skill | 自然语言示例 | 对应 CLI |
+|---|---|---|
+| hackertrip-submit-event | @hackertrip-submit-event + 赛事文档，分析并保存草稿 | submit-event |
+| hackertrip-event-status | 帮我查一下刚提交的赛事审核状态 | event-status |
 
-> "帮我把这个黑客松发到 HackerTrip"（附上活动海报图或口述信息）
+已有旧 Skill 可加 `--force` 更新。其他 AI 工具可用 `--dest <该工具实际读取的skills目录>` 指定位置，是否自动加载按工具本身设置核对。直接复制小程序完整指令给电脑端 AI 即可使用，不强制安装 Skill。
 
-AI 会 OCR 海报、整理字段、过准入自检、执行提交。
+## 提交后的边界
 
-## 提交后会发生什么
+成功会返回 Draft id，配套新版本成功状态为 pending_submission（待提交）。请回小程序核对、补充及管理内容；是否公开以平台审核和实际上架为准。CLI 不提供已有赛事编辑、删除或直接上架。网络结果不明时先 event-status 查询，避免重复提交。封面参数接收图片链接，不会自动上传电脑里的图片文件。
 
-```
-提交 → 绑定你账号的草稿箱 → 平台人工审核 → 上架
-     → hackertrip.space 网站赛事列表 + 微信小程序双端展示 → 选手报名/收藏
-```
-
-审核不通过会保留草稿并标注缺口，补全后可再审。虚假信息会被直接拒绝。
-
----
-
-发活动、招选手，都在 [hackertrip.space](https://hackertrip.space)
+CLI 只保存 `pending_submission`（待提交）草稿，不代主办方提交平台审核。主办方在小程序「赛事&项目管理」打开详情、编辑并保存后，亲自点击「提交平台审核」。平台审核中的草稿可查看、不可修改；已上线内容归入正式赛事与项目。

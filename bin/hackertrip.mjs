@@ -11,6 +11,7 @@ import { eventStatus } from '../lib/event-status.mjs';
 import { opsCommand } from '../lib/ops.mjs';
 import { login, readConfig } from '../lib/login.mjs';
 import { randomInt } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 
 const API_URL = process.env.HACKERTRIP_API || 'https://hackertrip.space/api/match';
 const DEFAULT_SYNC_URL = 'https://test-1-d8gn28apcbf409627-1445960691.ap-shanghai.app.tcloudbase.com/pairSync';
@@ -214,7 +215,7 @@ ${B}COMMANDS${R}
   ${C}match${R}          Scan the local project and rank matching hackathons (default).
                  ${D}Run with no command, or "hackertrip ." , to use this.${R}
   ${C}publish-work${R}   Upload your project as a work to your HackerTrip profile.
-  ${C}submit-event${R}   Submit a hackathon/event to the HackerTrip review drafts.
+  ${C}submit-event${R}   Save a hackathon/event draft for organizer confirmation.
   ${C}event-status${R}   Check the review status of events you submitted.
   ${C}install-skills${R} Install the Claude Code skills into ~/.claude/skills.
   ${C}login${R}          扫码把这台电脑连到小程序账号（连一次，之后同步免输入）。
@@ -281,7 +282,7 @@ ${B}event-status options${R}
 
 ${B}install-skills options${R}
   --player              Only install the player kit skill (HackerTrip-publish-work).
-  --organizer           Only install the organizer kit skill (HackerTrip-submit-event).
+  --organizer           Install organizer submission + status query skills.
   --dest <dir>          Target skills directory (default: ~/.claude/skills).
   --force               Overwrite skills that already exist.
 
@@ -291,6 +292,11 @@ ${D}Powered by HackerTrip  ${C}https://hackertrip.space${R}
 
 async function main() {
   const argv = process.argv.slice(2);
+  if (argv.includes('--help') || argv.includes('-h')) return printHelp();
+  if (argv[0] === '--version' || argv[0] === '-v') {
+    console.log(JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version);
+    return;
+  }
   let command = argv[0];
 
   // Backward compatible: no command, or a non-command first arg (e.g. "." or "--path"),

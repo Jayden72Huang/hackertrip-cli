@@ -6,10 +6,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-7c5dff.svg)](#许可证)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-4de1ff.svg)](https://nodejs.org)
 
-HackerTrip 是面向黑客松的开发者社区。这个开源合集把"参加黑客松"这件事拆成三条命令：
+HackerTrip 是面向黑客松的开发者社区。这个开源合集把"参加黑客松"这件事拆成几条命令：
 
 - 🔍 **`match`** —— 扫描你的本地项目，AI 语义匹配最适合参加的黑客松。
 - 🚀 **`publish-work`** —— 选手把作品一键发布到 HackerTrip 个人主页（求职 / 组队 / 展示）。
+- 📋 **`event-status`** —— 主办方查询已提交赛事的审核状态、待补信息与退回备注。
 - 📮 **`submit-event`** —— 主办方零门槛把活动提交到平台草稿箱，触达全网选手。
 
 按角色打包了两个开箱即用的包（角色专属上手指南 + 配套 [Claude Code](https://claude.com/claude-code) skill）：
@@ -17,13 +18,13 @@ HackerTrip 是面向黑客松的开发者社区。这个开源合集把"参加�
 | 包 | 给谁用 | 里面有什么 |
 |---|---|---|
 | 🎒 [**选手包** `packages/player`](packages/player/) | 黑客松选手 / 开发者 | `match` 找比赛 + `publish-work` 发作品 + skill `HackerTrip-publish-work` |
-| 📣 [**主办方包** `packages/organizer`](packages/organizer/) | 主办方 / 社区组织者 | `submit-event` 提交活动 + skill `HackerTrip-submit-event` |
+| 📣 [**主办方包** `packages/organizer`](packages/organizer/) | 主办方 / 社区组织者 | `submit-event` 提交 + `event-status` 查询 + 两个主办方 skills |
 
 ---
 
 ## 安装
 
-免安装，直接用 `npx`（每次自动拉最新版）：
+免全局安装，使用 `npx hackertrip@latest` 明确获取当前最新发布版：
 
 ```bash
 npx hackertrip --help
@@ -116,7 +117,7 @@ npx hackertrip submit-event --organizer-no HT-XXXXXX --submit-key <提交密钥>
 | `--prize` / `--tracks` | 奖金 / 赛道（不确定就留空，别编造） |
 | `--summary` / `--organizer` / `--contact` | 简介 / 主办方 / 联系方式 |
 
-> 必填四件套：**名称 + 起止时间 + 城市 + 官网**。提交即进草稿待人工审核，假信息会被拒。
+> 必填四件套：**名称 + 起止时间 + 城市 + 官网**。上传后保存为待提交草稿，主办方确认后再提交平台审核，假信息会被拒。
 
 ---
 
@@ -146,7 +147,7 @@ export HACKERTRIP_SUBMIT_KEY="<提交密钥>"
 | Skill | 给谁用 | 所在包 | 做什么 |
 |---|---|---|---|
 | **HackerTrip-publish-work** | 选手 | [`packages/player`](packages/player/) | 扫 repo 自动抓作品信息 + 引导补全 demo/截图/获奖，经配对码安全同步到个人主页。说"帮我把黑客松作品发到 HackerTrip"即触发。 |
-| **HackerTrip-submit-event** | 主办方 | [`packages/organizer`](packages/organizer/) | 口述活动或丢一张海报图，AI 视觉 OCR 整理成标准字段 + 过准入门槛自检，提交到草稿箱。说"帮我把这个黑客松发到 HackerTrip"即触发。 |
+| **hackertrip-submit-event** | 主办方 | [`packages/organizer`](packages/organizer/) | 口述活动或丢一张海报图，AI 视觉 OCR 整理成标准字段 + 过准入门槛自检，提交到草稿箱。说"帮我把这个黑客松发到 HackerTrip"即触发。 |
 
 **怎么用**：把对应包 `skills/` 下的 skill 目录拷到你的 Claude Code skills 目录（如 `~/.claude/skills/`），对话里直接说目标（如"我想把作品发布到 HackerTrip"），Claude 会自动加载对应 skill 并引导你走完每一步。
 
@@ -194,3 +195,5 @@ cp -r packages/organizer/skills/HackerTrip-submit-event ~/.claude/skills/
 [MIT](LICENSE) © HackerTrip
 
 —— Made for hackers, by hackers. 找黑客松、秀作品、发活动，都在 [hackertrip.space](https://hackertrip.space)。
+
+CLI 只保存 `pending_submission`（待提交）草稿，不代主办方提交平台审核。主办方在小程序「赛事&项目管理」打开详情、编辑并保存后，亲自点击「提交平台审核」。平台审核中的草稿可查看、不可修改；已上线内容归入正式赛事与项目。
